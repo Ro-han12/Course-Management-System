@@ -25,7 +25,7 @@ model Teacher {
   teacherId  String   @unique
   name       String
   email      String?
-  photo      String
+  photo      String?
   phone      String
   address    String
   linkedin   String?

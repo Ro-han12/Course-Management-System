@@ -64,15 +64,15 @@ export const batchschema = z.object({
       .string()
       .min(8, { message: "Password must be at least 8 characters long!" }),
     firstName: z.string().min(1, { message: "First name is required!" }),
-    lastName: z.string().min(1, { message: "Last name is required!" }),
     Address: z.string().min(1, { message: "City/Country you reside in" }),
     phone: z.string().min(1, { message: "Phone is required!" }),
-    sex: z.enum(["male", "female"], { message: "Sex is required!" }),
-    img: z.instanceof(File, { message: "Image is required" }),
+    sex: z.enum(["MALE", "FEMALE"], { message: "Sex is required!" }),
+    img: z.string().optional(),
     linkedin: z
       .string()
       .url({ message: "Please enter a valid LinkedIn URL!" })
       .optional(),
+    batches:z.array(z.string()).optional(),
   });
   export type TeacherSchema = z.infer<typeof teacherschema>;
 

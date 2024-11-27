@@ -1,6 +1,6 @@
 "use client";
 
-import { deleteBatch } from "@/lib/action";
+import { deleteBatch, deleteTeacher } from "@/lib/action";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import { useState } from "react";
@@ -12,7 +12,7 @@ import { FormContainerProps } from "./FormContainer";
 
 const deleteActionMap = {
   batch: deleteBatch,
-  teacher: deleteBatch,
+  teacher: deleteTeacher,
   student: deleteBatch,
   Announcement: deleteBatch,
   event: deleteBatch
@@ -44,7 +44,7 @@ const forms: {
     relatedData?: any
   ) => JSX.Element;
 } = {
-  // teacher: (setOpen,type, data, relatedData) => <TeacherForm type={type} data={data} setOpen={setOpen} relatedData={relatedData}/>,
+  teacher: (setOpen,type, data, relatedData) => <TeacherForm type={type} data={data} setOpen={setOpen} relatedData={relatedData}/>,
   // student: (setOpen,type, data, relatedData) => <StudentForm type={type} data={data} setOpen={setOpen} relatedData={relatedData} />,
   batch: (setOpen,type, data, relatedData) => <BatchForm type={type} data={data} setOpen={setOpen} relatedData={relatedData} />,
   // Announcement: (setOpen,type, data, relatedData) => <AnnouncementForm type={type} data={data} setOpen={setOpen} relatedData={relatedData}/>,

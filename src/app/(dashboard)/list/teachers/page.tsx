@@ -8,6 +8,7 @@ import Link from "next/link";
 import prisma from "@/lib/prisma";
 import { Prisma, Batch, Teacher  } from "@prisma/client"
 import { ITEM_PER_PAGE } from "@/lib/settings";
+import FormContainer from "@/components/FormContainer";
 
 // type Teacher = {
 //   id: number;
@@ -105,7 +106,7 @@ const renderRow = (item: TeacherList) => (
           </button>
         </Link>
         {role === "admin" && (
-          <FormModal table="teacher" type="delete" id={item.id} />
+          <FormContainer table="teacher" type="delete" id={item.id} />
         )}
       </div>
     </td>
@@ -174,7 +175,7 @@ const TeacherListPage = async ({
               <Image src="/sort.png" alt="" width={14} height={14} />
             </button>
             {role === "admin" && (
-              <FormModal table="teacher" type="create" />
+              <FormContainer table="teacher" type="create" />
             )}
           </div>
         </div>
