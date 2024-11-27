@@ -1,19 +1,24 @@
-import FormModal from "@/components/FormModal";
+
+import FormContainer from "@/components/FormContainer";
 import Pagination from "@/components/Pagination";
 import Table from "@/components/Table";
 import TableSearch from "@/components/TableSearch";
-import { role } from "@/lib/data";
-import { Prisma, Batch, Teacher, Student } from "@prisma/client";
-import Image from "next/image";
-import { ITEM_PER_PAGE } from "@/lib/settings";
 import prisma from "@/lib/prisma";
+import { ITEM_PER_PAGE } from "@/lib/settings";
+import { Batch, Prisma, Teacher } from "@prisma/client";
+import Image from "next/image";
+import { auth } from "@clerk/nextjs/server";
 
-// Custom type for Batch with Teacher and Students relations
-type BatchWithRelations = Batch & {
-  teacher: Teacher | null;
-  students: Student[];
-};
+type BatchList = Batch & { Teacher: Teacher };
 
+const ClassListPage = async ({
+  searchParams,
+}: {
+  searchParams: { [key: string]: string  };
+}) => {
+
+const { sessionClaims } =  await auth();
+const role = (sessionClaims?.metadata as { role?: string })?.role;
 // Define columns for the Table component
 const columns = [
   {
@@ -31,7 +36,7 @@ const columns = [
     className: "hidden md:table-cell",
   },
   {
-    header: "Number of Students",
+    header: "Students",
     accessor: "students",
     className: "hidden md:table-cell",
   },
@@ -51,22 +56,23 @@ const columns = [
 ];
 
 // Function to render each row with the relevant details
-const renderRow = (batch: BatchWithRelations) => (
+const renderRow = (item: BatchList) => (
   <tr
-    key={batch.id}
+    key={item.id}
     className="border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-lamaPurpleLight"
   >
-    <td className="flex items-center gap-4 p-4">{batch.batchname}</td>
-    <td className="hidden md:table-cell">{batch.capacity}</td>
-    <td className="hidden md:table-cell">{batch.teacher?.name || "N/A"}</td>
-    <td className="hidden md:table-cell">{batch.students.length}</td>
-    <td className="hidden md:table-cell">{batch.zoomLink}</td>
+    <td className="flex items-center gap-4 p-4">{item.batchname}</td>
+    {/* <td className="hidden md:table-cell">{item.capacity}</td> */}
+    <td className="hidden md:table-cell">{item.zoomLink}</td>
+    <td className="hidden md:table-cell">
+      {item.teacherId}
+    </td>
     <td>
       <div className="flex items-center gap-2">
         {role === "admin" && (
           <>
-            <FormModal table="batch" type="update" data={batch} />
-            <FormModal table="batch" type="delete" id={batch.id} />
+            <FormContainer table="batch" type="update" data={item} />
+            <FormContainer table="batch" type="delete" id={item.id} />
           </>
         )}
       </div>
@@ -74,27 +80,23 @@ const renderRow = (batch: BatchWithRelations) => (
   </tr>
 );
 
-// Function to fetch batches with teacher and student relations
-const fetchBatches = async (searchParams: { [key: string]: string | undefined }) => {
-  const { page, ...queryParams } = searchParams;
-  const currentPage = page ? parseInt(page) : 1;
+const { page, ...queryParams } = searchParams;
 
-  // Initialize query conditions
+  const p = page ? parseInt(page) : 1;
+
+  // URL PARAMS CONDITION
+
   const query: Prisma.BatchWhereInput = {};
 
-  // Populate query with search parameters if provided
   if (queryParams) {
     for (const [key, value] of Object.entries(queryParams)) {
       if (value !== undefined) {
         switch (key) {
-          case "batchId":
-            query.id = parseInt(value);
-            break;
+          // case "teacherId":
+          //   query.teacherId = value;
+          //   break;
           case "search":
             query.batchname = { contains: value, mode: "insensitive" };
-            break;
-          case "teacherId":
-            query.teacherId = parseInt(value);
             break;
           default:
             break;
@@ -103,26 +105,17 @@ const fetchBatches = async (searchParams: { [key: string]: string | undefined })
     }
   }
 
-  // Perform the query with relations
-  const [batches, totalBatches] = await prisma.$transaction([
+  const [data, count] = await prisma.$transaction([
     prisma.batch.findMany({
       where: query,
       include: {
-        teacher: true,    // Include teacher details
-        students: true,   // Include students details
+        teacher: true,
       },
       take: ITEM_PER_PAGE,
-      skip: ITEM_PER_PAGE * (currentPage - 1),
+      skip: ITEM_PER_PAGE * (p - 1),
     }),
     prisma.batch.count({ where: query }),
   ]);
-
-  return { batches, totalBatches };
-};
-
-// Main Batch List Component
-const BatchListPage = async ({ searchParams }: { searchParams: { [key: string]: string | undefined } }) => {
-  const { batches, totalBatches } = await fetchBatches(searchParams);
 
   return (
     <div className="bg-white p-4 rounded-md flex-1 m-4 mt-0">
@@ -133,23 +126,21 @@ const BatchListPage = async ({ searchParams }: { searchParams: { [key: string]: 
           <TableSearch />
           <div className="flex items-center gap-4 self-end">
             <button className="w-8 h-8 flex items-center justify-center rounded-full bg-lamaYellow">
-              <Image src="/filter.png" alt="Filter" width={14} height={14} />
+              <Image src="/filter.png" alt="" width={14} height={14} />
             </button>
             <button className="w-8 h-8 flex items-center justify-center rounded-full bg-lamaYellow">
-              <Image src="/sort.png" alt="Sort" width={14} height={14} />
+              <Image src="/sort.png" alt="" width={14} height={14} />
             </button>
-            {role === "admin" && <FormModal table="batch" type="create" />}
+            {role === "admin" && <FormContainer table="batch" type="create" />}
           </div>
         </div>
       </div>
-
       {/* LIST */}
-      <Table columns={columns} renderRow={renderRow} data={batches} />
-
+      <Table columns={columns} renderRow={renderRow} data={data} />
       {/* PAGINATION */}
-      
+      <Pagination page={p} count={count} />
     </div>
   );
 };
 
-export default BatchListPage;
+export default ClassListPage;

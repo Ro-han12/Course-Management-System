@@ -22,11 +22,14 @@ export const studentschema = z.object({
 
 
 export const batchschema = z.object({
+    id: z.coerce.number().optional(),
     BatchName: z.string().min(1, { message: "Batch name is required!" }),
-    Capacity: z.number().min(1, { message: "Max strength of the batch required!" }),
-    Teachers: z.string().min(1, { message: "Select trainers for the batch" }),
-    Students: z.string().min(1, { message: "Select students for the batch" }),
+    Capacity: z.coerce.number().min(1, { message: "Max strength of the batch required!" }),
+    // Teachers: z.string().min(1, { message: "Select trainers for the batch" }),
+    Teachers: z.array(z.string()),
+    Students: z.array(z.string()),
     ZoomLink: z.string().min(1, { message: "Enter Zoom Link" }),
+    teacherId: z.coerce.string().optional(),
     
   });
 

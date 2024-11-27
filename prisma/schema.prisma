@@ -13,7 +13,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
 model Admin {
   id        String   @id @default(uuid())
   username  String   @unique
@@ -62,7 +61,7 @@ model Batch {
   batchname  String
   capacity   Int
   teacherId  Int?
-  teacher    Teacher?  @relation("TeacherBatches", fields: [teacherId], references: [id])
+  teacher    Teacher[]  @relation("TeacherBatches")
   students   Student[] @relation("StudentBatches")
   zoomLink   String
   events     Event[]   @relation("BatchEvents")
